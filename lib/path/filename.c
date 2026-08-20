@@ -42,7 +42,7 @@ char *FS_path_get_filename(struct fs_path_s *path, struct dstr_s *filename, unsi
 
         } else {
 
-            if (filename) DSTR_set_bytes(filename, pos+1, (path->start.str + path->start.length - pos - 1));
+            if (filename) DSTR_set_bytes(filename, pos+1, (path->start.str + path->start.length - pos - 1), 0);
             if (remove) path->start.length=(unsigned int)(pos - path->start.str);
             pos++;
 

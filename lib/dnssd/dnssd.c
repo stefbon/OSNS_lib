@@ -1,21 +1,4 @@
-/*
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 Stef Bon <stefbon@gmail.com>
-
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-*/
+/* SPDX-License-Identifier: GLP-2.0-only */
 
 #include "libosns-basic-system-headers.h"
 
@@ -26,6 +9,7 @@
 
 #include "libosns-main.h"
 #include "libosns-log.h"
+#include "libosns-event.h"
 #include "libosns-misc.h"
 #include "libosns-list.h"
 #include "libosns-network.h"
@@ -36,10 +20,7 @@
 #include "mdns-socket-ctx.h"
 #include "mdns-interface.h"
 
-static struct program_module_s dnssd_module= {
-    .status                                     = 0,
-    .esignal                                    = EVENT_SHARED_SIGNAL_DEFAULT_INIT_P,
-};
+static unsigned int refcount=0;
 
 static void dnssd_manager_start_init()
 {
@@ -110,7 +91,9 @@ static void dnssd_manager_get_all_mdns_sockets(unsigned char refresh)
     int result=0;
     struct list_element_s *list=NULL;
 
-    if (EVENT_signal_lock_flag_simple(manager.mctx->esignal, &manager.status, DNSSD_MANAGER_FLAG_LOCK_MSOCKETS, DNSSD_MANAGER_FLAG_LOCK_MSOCKETS)==0) {
+    logoutput_debug("%s", __FUNCTION__);
+
+    if (EVENT_signal_lock_flag(manager.mctx->esignal, &manager.status, DNSSD_MANAGER_FLAG_LOCK_MSOCKETS)==0) {
 
         logoutput_debug("%s: unable to lock list with mdns sockets ... cannot continue", __FUNCTION__);
         return;
@@ -213,17 +196,26 @@ static void dnssd_manager_finish()
 
 void DNSSD_init(struct mdns_socket_ctx_s *mctx)
 {
+    struct event_shared_signal_s *esignal=EVENT_signal_get_default();
 
-    EVENT_signal_lock_flag(dnssd_module.esignal, &dnssd_module.status, PROGRAM_MODULE_FLAG_LOCK);
+    logoutput_debug("%s", __FUNCTION__);
 
-    if (dnssd_module.status & PROGRAM_MODULE_FLAG_INIT_DONE) {
+    if (EVENT_signal_lock(esignal)==0) {
 
-        EVENT_signal_unlock_flag(dnssd_module.esignal, &dnssd_module.status, PROGRAM_MODULE_FLAG_LOCK);
-        return;
+	refcount++;
+
+	if (refcount>1) {
+
+    	    EVENT_signal_unlock(esignal);
+    	    return;
+
+	}
+
+	EVENT_signal_unlock(esignal);
 
     }
 
-    LIST_header_init(&manager.msockets, 0, NULL);
+    LIST_header_init(&manager.msockets, 0);
 
     manager.mctx=(mctx) ? mctx : MDNS_socket_get_default_ctx();
 
@@ -232,9 +224,7 @@ void DNSSD_init(struct mdns_socket_ctx_s *mctx)
     manager.finish=dnssd_manager_finish;
 
     if (manager.mctx->esignal==NULL) manager.mctx->esignal=EVENT_signal_get_default();
-
-    dnssd_module.status |= PROGRAM_MODULE_FLAG_INIT_DONE;
-    EVENT_signal_unlock_flag(dnssd_module.esignal, &dnssd_module.status, PROGRAM_MODULE_FLAG_LOCK);
+    logoutput_debug("%s: ready", __FUNCTION__);
 
 }
 
@@ -250,5 +240,15 @@ void DNSSD_refresh()
 
 void DNSSD_finish()
 {
-    (* manager.finish)();
+    struct event_shared_signal_s *esignal=EVENT_signal_get_default();
+
+    if (EVENT_signal_lock(esignal)) {
+
+	refcount--;
+
+	if (refcount==0) (* manager.finish)();
+	EVENT_signal_unlock(esignal);
+
+    }
+
 }

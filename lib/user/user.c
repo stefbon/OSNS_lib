@@ -202,27 +202,52 @@ static void user_util_skip_spaces(struct dstr_s *stra, unsigned char checkheadin
 
 static void utils_skip_heading_spaces(struct dstr_s *stra)
 {
-    while (stra->length && isspace(stra->str)) DSTR_shift_raw(stra, 1);
+    while (stra->length && isspace(stra->str[0])) DSTR_shift_raw(stra, 1);
 }
 
-static void read_uidminmax_cb(struct dstr_s *option, struct dstr_s *value, void *ptr)
+static unsigned char read_uidminmax_cb(struct dstr_s *line, void *ptr)
 {
+    unsigned int ctr=0;
+    struct dstr_s option=DSTR_INIT;
 
-    utils_skip_heading_spaces(option);
+    utils_skip_heading_spaces(line);
 
-    if (DSTR_cmp_bytes(option, "UID_MIN", 0, 1, 0, 0)) {
+    increase:
 
-        utils_skip_heading_spaces(value);
-        desktop_user_minimum_uid=DSTR_convert_str_to_long(value);
-        logoutput_debug("%s: found minimum uid %lu", __FUNCTION__, desktop_user_minimum_uid);
+    if ((ctr<line->length) && (isspace(line->str[ctr])==0)) {
 
-    } else if (DSTR_cmp_bytes(option, "UID_MAX", 0, 1, 0, 0)) {
-
-        utils_skip_heading_spaces(value);
-        desktop_user_maximum_uid=DSTR_convert_str_to_long(value);
-        logoutput_debug("%s: found maximum uid %lu", __FUNCTION__, desktop_user_maximum_uid);
+	ctr++;
+	goto increase;
 
     }
+
+    if (ctr==line->length) return 0;
+
+    DSTR_set_bytes_raw(&option, &line->str[ctr], (line->length - ctr), 0);
+
+    if (DSTR_cmp_bytes(&option, "UID_MIN", 0, 1, 0, 0) || DSTR_cmp_bytes(&option, "UID_MAX", 0, 1, 0, 0)) {
+	struct dstr_s value=DSTR_INIT;
+	unsigned long tmp=0;
+
+	DSTR_set_bytes_raw(&value, &line->str[ctr], line->length - ctr, 0);
+        utils_skip_heading_spaces(&value);
+	tmp=DSTR_convert_str_to_long(&value);
+
+	if (DSTR_cmp_bytes(&option, "UID_MIN", 0, 1, 0, 0)) {
+
+	    desktop_user_minimum_uid=tmp;
+	    logoutput_debug("%s: found minimum uid %lu", __FUNCTION__, desktop_user_minimum_uid);
+
+	} else {
+
+	    desktop_user_maximum_uid=tmp;
+	    logoutput_debug("%s: found maximum uid %lu", __FUNCTION__, desktop_user_maximum_uid);
+
+	}
+
+    }
+
+    return 0;
 
 }
 

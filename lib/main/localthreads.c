@@ -82,7 +82,6 @@ static void THREAD_module_init()
 
     }
 
-    logoutput_debug("%s: out", __FUNCTION__);
 }
 
 static struct local_threads_manager_s *local_thread_get_manager(struct local_thread_s *thread)
@@ -175,6 +174,7 @@ static struct local_thread_s *local_thread_create(struct local_threads_manager_s
     errcode=(unsigned int) pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     if (errcode) goto out_detachstate;
 
+    LIST_header_add_last(&manager->threads, &lthread->list);
     errcode=(unsigned int) pthread_create(&lthread->threadid, &attr, (void *) process_local_thread, (void *) lthread);
 
     out_detachstate:

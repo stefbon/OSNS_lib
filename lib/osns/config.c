@@ -110,32 +110,33 @@ struct cb_read_osns_conf_hlpr_s {
     struct osns_options_s       *options;
 };
 
-static void cb_read_osns_conf(struct dstr_s *option, struct dstr_s *value, void *ptr)
+static unsigned char cb_read_osns_conf(struct dstr_s *line, void *ptr)
 {
     struct cb_read_osns_conf_hlpr_s *hlpr=(struct cb_read_osns_conf_hlpr_s *) ptr;
     struct osns_options_s *options=hlpr->options;
+    struct dstr_s option=DSTR_INIT;
 
-    if (DSTR_cmp_bytes(option, "main.maxthreads", 0, 1, 0, 0)) {
-        long numericvalue=DSTR_convert_str_to_long(value);
+    if (DSTR_get_first_dstr(line, '=', &option, 1, 0)==0) return 0;
+
+    if (DSTR_cmp_bytes(&option, "main.maxthreads", 0, 1, 0, 0)) {
+    	long numericvalue=DSTR_convert_str_to_long(line);
 
         osns_option_uint_set(&options->maxthreads, numericvalue, hlpr->origin, OSNS_OPTION_HOW_SET, 0);
         logoutput_debug("%s: found option main.maxthreads, value %lu", __FUNCTION__, numericvalue);
 
-    } else if (DSTR_cmp_bytes(option, "client.", 0, 0, 0, 0)) {
+    } else if (DSTR_cmp_bytes(&option, "client.", 0, 0, 0, 0)) {
 
-        if (hlpr->role != OSNS_CTX_ROLE_CLIENT) return;
+        if (hlpr->role != OSNS_CTX_ROLE_CLIENT) return 0;
 
-        if (DSTR_cmp_bytes(option, "client.services", 0, 1, 0, 0)) {
+        if (DSTR_cmp_bytes(&option, "client.services", 0, 1, 0, 0)) {
 
             /* parse a comma seperated list */
 
-            struct dstr_s tmp=DSTR_INIT;
             struct dstr_s service=DSTR_INIT;
 
-            logoutput_debug("%s: found option client.services %.*s", __FUNCTION__, value->length, value->str);
-            DSTR_set_str_raw(&tmp, value, 0);
+            logoutput_debug("%s: found option client.services %.*s", __FUNCTION__, line->length, line->str);
 
-            while (DSTR_get_first_dstr(&tmp, ',', &service, 1, 1)) {
+            while (DSTR_get_first_dstr(line, ',', &service, 1, 1)) {
 
                 if (DSTR_cmp_bytes(&service, "fuse", 0, 1, 0, 0)) {
 
@@ -155,9 +156,9 @@ static void cb_read_osns_conf(struct dstr_s *option, struct dstr_s *value, void 
 
     }
 
+    return 0;
+
 }
-
-
 
 static void osns_config_read_configfile(struct fs_path_s *path, struct osns_options_s *options, unsigned char origin, unsigned char role)
 {

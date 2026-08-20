@@ -128,6 +128,7 @@ void BEVENT_ctx_set_signal(struct bevent_ctx_s *bctx, bctx_cb_t *cb)
 
 unsigned char BEVENT_ctx_attach_to_eventloop(struct beventloop_s *eloop, struct bevent_ctx_s *bctx)
 {
+    unsigned char result=0;
 
     if (bctx==NULL) {
 
@@ -159,15 +160,15 @@ unsigned char BEVENT_ctx_attach_to_eventloop(struct beventloop_s *eloop, struct 
 
     	    bctx->bevent=bevent;
     	    bevent->bctx=bctx;
+    	    result=1;
 
 	}
 
 	EVENT_signal_unlock_flag(eloop->esignal, &eloop->lock, BEVENTLOOP_LOCK_BCTX);
-        return 1;
 
     }
 
-    return 0;
+    return result;
 
 }
 

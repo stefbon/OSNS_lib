@@ -93,7 +93,7 @@ void FS_path_set_bytes_raw(struct fs_path_s *path, char *buffer, unsigned int si
     path->buffer=buffer;
     path->size=size;
 
-    DSTR_set_bytes_raw(&path->start, buffer, length);
+    DSTR_set_bytes_raw(&path->start, buffer, length, 0);
 
 }
 
@@ -107,7 +107,7 @@ void FS_path_set_bytes(struct fs_path_s *path, char *buffer, unsigned int size, 
     path->size=size;
     path->buffer=buffer;
 
-    DSTR_set_bytes(&path->start, buffer, length);
+    DSTR_set_bytes(&path->start, buffer, length, 0);
 
     /* by default prepare the path to append */
 
@@ -213,7 +213,7 @@ unsigned int FS_path_import(struct fs_path_s *path, char *buffer, unsigned int s
 
     endzero=(endzero ? 1 : 0);
 
-    if (path->buffer && ((path->size)>=(size+emdzero))) {
+    if (path->buffer && ((path->size)>=(size+endzero))) {
 
 	memset(path->buffer, 0, path->size);
 	goto success;

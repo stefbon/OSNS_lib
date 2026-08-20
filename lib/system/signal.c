@@ -261,6 +261,8 @@ int SYSTEM_signal_monitor_start(struct beventloop_s *eloop, struct event_shared_
     init_done=1;
     EVENT_signal_unlock(global_esignal);
 
+    logoutput_debug("%s: mount monitor initialized", __FUNCTION__);
+
     monitor.status = 0;
     LIST_header_init(&monitor.header, 0);
 

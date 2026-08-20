@@ -15,7 +15,7 @@ debug_CFLAGS = -ggdb -Og
 shared_lib_connection_sources = lib/connection/connection.c
 shared_lib_datatypes_sources = lib/datatypes/dstr.c
 
-# shared_lib_dnssd_sources = lib/dnssd/dnssd.c lib/dnssd/mdns-interface.c lib/dnssd/mdns-socket.c lib/dnssd/mdns-socket-ctx.c lib/dnssd/mdns-utils.c lib/dnssd/addrs.c
+shared_lib_dnssd_sources = lib/dnssd/dnssd.c lib/dnssd/mdns-interface.c lib/dnssd/mdns-socket.c lib/dnssd/mdns-socket-ctx.c lib/dnssd/mdns-utils.c lib/dnssd/addrs.c
 
 shared_lib_event_sources = lib/event/signal.c lib/event/lock.c lib/event/set.c
 shared_lib_eventloop_sources = lib/eventloop/backend.c lib/eventloop/bae.c lib/eventloop/bevent.c lib/eventloop/ctx.c lib/eventloop/loop.c lib/eventloop/queue.c
@@ -34,7 +34,7 @@ shared_lib_module_sources = lib/module/module.c
 shared_lib_mountinfo_sources = lib/mountinfo/export.c lib/mountinfo/monitor.c lib/mountinfo/read.c lib/mountinfo/utils.c
 shared_lib_network_sources = lib/network/address-list.c lib/network/address.c lib/network/dns.c lib/network/host.c lib/network/services.c
 shared_lib_osns_sources = lib/osns/arguments.c lib/osns/config.c lib/osns/event.c lib/osns/interface.c lib/osns/modules.c lib/osns/osns.c lib/osns/start.c lib/osns/utils.c
-shared_lib_path_sources = lib/path/append.c lib/path/compare.c lib/path/filename.c lib/path.c lib/path/seperator.c lib/path/utils.c
+shared_lib_path_sources = lib/path/append.c lib/path/compare.c lib/path/filename.c lib/path/path.c lib/path/seperator.c lib/path/utils.c
 shared_lib_pid_sources = lib/pid/pid.c
 shared_lib_sl_sources = lib/sl/init.c lib/sl/lock.c lib/sl/sl.c
 shared_lib_socket_sources = lib/socket/socket.c lib/socket/listen.c lib/socket/ctx.c
@@ -46,8 +46,8 @@ shared_lib_time_sources = lib/time/time.c
 
 lib_LTLIBRARIES += libosns.la
 
-libosns_la_SOURCES = $(shared_lib_connection_sources) $(shared_lib_datatypes_sources) $(shared_lib_eventloop_sources) $(shared_lib_event_sources) $(shared_lib_file_sources) $(shared_lib_fs_sources) $(shared_lib_hashtable_sources) $(shared_lib_io_sources) $(shared_lib_list_sources) $(shared_lib_lcok_sources) $(shared_lib_ldap_sources) $(shared_lib_main_sources) \
-                    $(shared_lib_misc_sources) $(shared_lib_mountinfo_sources) $(shared_lib_network_sources) $(shared_lib_osns_sources) $(shared_lib_pid_sources) $(shared_lib_socket_sources) $(shared_lib_system_sources) $(shared_lib_user_sources) $(shared_lib_time_sources)
+libosns_la_SOURCES = $(shared_lib_connection_sources) $(shared_lib_datatypes_sources) $(shared_lib_dnssd_sources) $(shared_lib_eventloop_sources) $(shared_lib_event_sources) $(shared_lib_file_sources) $(shared_lib_fs_sources) $(shared_lib_hashtable_sources) $(shared_lib_io_sources) $(shared_lib_list_sources) $(shared_lib_lcok_sources) $(shared_lib_ldap_sources) $(shared_lib_main_sources) \
+                    $(shared_lib_misc_sources) $(shared_lib_module_sources) $(shared_lib_mountinfo_sources) $(shared_lib_network_sources) $(shared_lib_osns_sources) $(shared_lib_path_sources) $(shared_lib_pid_sources) $(shared_lib_socket_sources) $(shared_lib_system_sources) $(shared_lib_user_sources) $(shared_lib_time_sources)
 
 # libosns_system_la_SOURCES = $(shared_lib_mountinfo_sources) $(shared_lib_dnssd_sources)
 

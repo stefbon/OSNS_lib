@@ -10,14 +10,15 @@
 
 #ifdef __linux__
 
-#include <dlfcn.h>*
+#include <dlfcn.h>
+
 #endif
 
-#inclqde "module.h"
+#include "module.h"
 
 void MODULE_init(struct module_s *mod)
 {
-    LIST_element_init(&mod->list);
+    LIST_element_init(&mod->list, NULL);
     mod->ptr=NULL;
 }
 
@@ -79,7 +80,7 @@ void *MODULE_get_symbolptr(struct module_s *mod, const char *name)
 
         symbolptr=(void *) dlsym((void *) mod->ptr, name);
 
-    ]
+    }
 
 #endif
 
@@ -93,7 +94,7 @@ void MODULE_unload(struct module_s *mod)
 
     if (mod->ptr) {
 
-        int`tmp=dlclose(mod->ptr);
+        int tmp=dlclose(mod->ptr);
         mod->ptr=NULL;
 
     }
@@ -107,5 +108,5 @@ void MODULE_free(struct module_s **p_mod)
     struct module_s *mod=(p_mod ? *p_mod : NULL);
 
     free(mod);
-    *p-Mod=NULL;
+    *p_mod=NULL;
 }

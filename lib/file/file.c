@@ -8,7 +8,7 @@
 
 #include "file.h"
 
-unsigned char FILE_parse(struct fs_path_s *path, void (* cb)(struct dstr_s *option, struct dstr_s *value, void *ptr), void *ptr)
+unsigned char FILE_parse(struct fs_path_s *path, unsigned char (* cb)(struct dstr_s *line, void *ptr), void *ptr)
 {
     unsigned char result=0;
 
@@ -32,14 +32,14 @@ unsigned char FILE_parse(struct fs_path_s *path, void (* cb)(struct dstr_s *opti
 
 	while (getline(&line, &length, fp)>0) {
 	    struct dstr_s value=DSTR_INIT;
-	    struct dstr_s option=DSTR_INIT;
 	    unsigned int tmp=strnlen(line, length);
 
 	    if (tmp==0) continue;
 	    if ((memcmp(line, "#", 1)==0) || (memcmp(line, "/", 1)==0) || (memcmp(line, ";", 1)==0)) continue;
 
 	    DSTR_set_bytes_raw(&value, line, tmp, 0);
-	    if (DSTR_get_first_dstr(&value, '=', &option, 1, 0)>0) (* cb)(&option, &value, ptr);
+	    logoutput_debug("%s: line %.*s", __FUNCTION__, value.length, value.str);
+	    if ((* cb)(&value, ptr)) break;
 
 	}
 

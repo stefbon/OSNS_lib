@@ -109,7 +109,7 @@ int FS_path_copy(struct fs_path_s *pa, unsigned char type, void *ptr, unsigned c
 
         pa->buffer=data.str;
         pa->size=data.length;
-        DSTR_set_bytes_raw(&pa->start, data.str, data.length);
+        DSTR_set_bytes_raw(&pa->start, data.str, data.length, 0);
 
     }
 

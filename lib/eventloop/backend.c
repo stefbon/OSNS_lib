@@ -73,6 +73,8 @@ static int BCTX_backend_epoll_ctl(struct beventloop_s *eloop, struct bevent_ctx_
 
     }
 
+    logoutput_debug("%s: add unix fd %u to eventloop", __FUNCTION__, fd);
+
     if (eloop==NULL) eloop=BEVENTLOOP_get_default_loop();
 
     if (epoll_opcode==EPOLL_CTL_DEL) {

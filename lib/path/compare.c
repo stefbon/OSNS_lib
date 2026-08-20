@@ -43,9 +43,9 @@ static unsigned char fs_path_compare_subdirectory(struct dstr_s *pa, struct dstr
 
     } else if (length < pb->length) {
 
-        if (DSTR_cmp_bytes(pa, pb->str, length, 1) && FS_path_is_path_seperator(pb->str[length])) {
+        if (DSTR_cmp_bytes(pa, pb->str, length, 1, 0, 0) && FS_path_is_path_seperator(pb->str[length])) {
 
-            if (sub) DSTR_set_bytes(sub, (char *)(pb->str + length), pb->length - length);
+            if (sub) DSTR_set_bytes(sub, (char *)(pb->str + length), pb->length - length, 0);
             return 1;
 
         }
@@ -71,7 +71,7 @@ unsigned char FS_path_compare(struct fs_path_s *path, const unsigned char type, 
 
         /* test both paths are the exact same */
 
-        if (path->start.length==data.length) result=DSTR_cmp_str(&path->start, &data);
+        if (path->start.length==data.length) result=DSTR_cmp_str(&path->start, &data, 1, 0, 0);
 
     } else if (mode==FS_PATH_COMPARE_MODE_IS_SUBDIRECTORY) {
 

@@ -53,6 +53,7 @@ static struct mdns_socket_ctx_s default_ctx = {
     .cb_host                                    = cb_host_mdns_socket_default,
     .cb_service                                 = cb_service_mdns_socket_default,
     .cb_addr                                    = cb_addr_mdns_socket_default,
+    .ptr					= NULL,
 };
 
 struct mdns_socket_ctx_s *MDNS_socket_get_default_ctx()

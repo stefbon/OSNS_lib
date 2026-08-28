@@ -58,7 +58,17 @@ static void MDNS_process_recordtype_ptr(struct mdns_socket_ctx_s *mctx, struct i
     struct dstr_s names[4];
 
     for (unsigned int i=0; i<4; i++) DSTR_init(&names[i]);
-    if (mdns_scan_names((char *) namestr->str, namestr->length, names, 4)==4) (* mctx->cb_host)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[3], &names[1], &names[2], ttl);
+
+    if (mdns_scan_names((char *) namestr->str, namestr->length, names, 4)==4) {
+
+	(* mctx->cb_host)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[3], &names[1], &names[2], ttl);
+
+    } else {
+
+	logoutput_debug("%s: nbot able to scan names", __FUNCTION__);
+
+    }
+
 }
 
 static void MDNS_process_recordtype_srv(struct mdns_socket_ctx_s *mctx, struct io_addr_object_s *fromaddr, struct mdns_string_t *entrystr, struct mdns_record_srv_t *srv)
@@ -66,7 +76,16 @@ static void MDNS_process_recordtype_srv(struct mdns_socket_ctx_s *mctx, struct i
     struct dstr_s names[4];
 
     for (unsigned int i=0; i<4; i++) DSTR_init(&names[i]);
-    if (mdns_scan_names((char *) entrystr->str, entrystr->length, names, 4)==4) (* mctx->cb_service)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[3], &names[1], &names[2], srv->port);
+    if (mdns_scan_names((char *) entrystr->str, entrystr->length, names, 4)==4) {
+
+	(* mctx->cb_service)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[3], &names[1], &names[2], srv->port);
+
+    } else {
+
+	logoutput_debug("%s: nbot able to scan names", __FUNCTION__);
+
+    }
+
 }
 
 static void MDNS_process_recordtype_addr(struct mdns_socket_ctx_s *mctx, struct io_addr_object_s *fromaddr, struct mdns_string_t *entrystr, struct io_addr_object_s *oaddr)
@@ -74,7 +93,16 @@ static void MDNS_process_recordtype_addr(struct mdns_socket_ctx_s *mctx, struct 
     struct dstr_s names[2];
 
     for (unsigned int i=0; i<2; i++) DSTR_init(&names[i]);
-    if (mdns_scan_names((char *) entrystr->str, entrystr->length, names, 2)==2) (* mctx->cb_addr)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[1], oaddr);
+    if (mdns_scan_names((char *) entrystr->str, entrystr->length, names, 2)==2) {
+
+	(* mctx->cb_addr)(mctx, MDNS_SOCKET_ACTION_ADD, fromaddr, &names[0], &names[1], oaddr);
+
+    } else {
+
+	logoutput_debug("%s: nbot able to scan names", __FUNCTION__);
+
+    }
+
 }
 
 static int MDNS_query_callback(int fd, const struct sockaddr* from, size_t addrlen, mdns_entry_type_t entry,

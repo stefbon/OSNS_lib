@@ -38,7 +38,6 @@ unsigned char FILE_parse(struct fs_path_s *path, unsigned char (* cb)(struct dst
 	    if ((memcmp(line, "#", 1)==0) || (memcmp(line, "/", 1)==0) || (memcmp(line, ";", 1)==0)) continue;
 
 	    DSTR_set_bytes_raw(&value, line, tmp, 0);
-	    logoutput_debug("%s: line %.*s", __FUNCTION__, value.length, value.str);
 	    if ((* cb)(&value, ptr)) break;
 
 	}

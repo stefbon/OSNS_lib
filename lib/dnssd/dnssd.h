@@ -16,6 +16,7 @@ struct mdns_socket_ctx_s {
     void                                                (* cb_host)(struct mdns_socket_ctx_s *mctx, unsigned char action, struct io_addr_object_s *from, struct dstr_s *hostname, struct dstr_s *domain, struct dstr_s *service, struct dstr_s *semantics, unsigned int ttl);
     void                                                (* cb_service)(struct mdns_socket_ctx_s *mctx, unsigned char action, struct io_addr_object_s *from, struct dstr_s *hostname, struct dstr_s *domain, struct dstr_s *service, struct dstr_s *semantics, unsigned int port);
     void                                                (* cb_addr)(struct mdns_socket_ctx_s *mctx, unsigned char action, struct io_addr_object_s *from, struct dstr_s *hostname, struct dstr_s *domain, struct io_addr_object_s *peer);
+    void						*ptr;
 };
 
 #define MDNS_SOCKET_STATUS_FLAG_INIT                    1

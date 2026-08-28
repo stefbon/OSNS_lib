@@ -191,11 +191,6 @@ static void copy_dirent_2_dentry(struct fs_object_s *fso, struct linux_dirent64 
 
     dentry->name.length=strlen(de->d_name);
 
-    /* the offset to the next de is set in d_off
-        you should read this as the -> actual <- position in the directory */
-
-    fso->offset=de->d_off;
-
 }
 
 #endif
@@ -212,7 +207,12 @@ off64_t FS_readdentry(struct fs_object_s *fso, struct fs_dentry_s *dentry, unsig
     unsigned int size=FS_DIRECTORY_DEFAULT_BUFFER_SIZE;
     unsigned char firsttime=0;
 
-    if (lseek64(fd, 0, SEEK_CUR)==0) firsttime=1;
+    if (lseek64(fd, 0, SEEK_CUR)==0) {
+
+	firsttime=1;
+	fso->offset=1;
+
+    }
 
     allocatebuffer:
 
@@ -287,6 +287,7 @@ off64_t FS_readdentry(struct fs_object_s *fso, struct fs_dentry_s *dentry, unsig
 
         buffer->pos += de->d_reclen;
         left -= de->d_reclen;
+        fso->offset++;
 
     }
 

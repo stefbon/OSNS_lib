@@ -34,7 +34,8 @@ unsigned int FS_path_convert_type_ptr(const unsigned char type, void *ptr, struc
 
     switch (type) {
 
-	case 'c' : {
+	case 'c' :
+	{
 
 	    data->str=(char *) ptr;
 	    data->length=(data->str) ? strlen(data->str) : 0;
@@ -43,7 +44,9 @@ unsigned int FS_path_convert_type_ptr(const unsigned char type, void *ptr, struc
 
 	}
 
-	case 's' : {
+	case 's' :
+	case 'd' :
+	{
 	    struct dstr_s *s=(struct dstr_s *) ptr;
 
 	    data->str=s->str;
@@ -53,7 +56,8 @@ unsigned int FS_path_convert_type_ptr(const unsigned char type, void *ptr, struc
 
 	}
 
-	case 'p' : {
+	case 'p' :
+	{
 	    struct fs_path_s *other=(struct fs_path_s *) ptr;
 
 	    data->str=other->start.str;

@@ -129,7 +129,7 @@ unsigned char FS_util_enable_access_mode(struct fs_object_s *fso, unsigned char 
 
 unsigned char FS_util_disable_access_mode(struct fs_object_s *fso, unsigned char type, void *ptr, unsigned char who, unsigned char action)
 {
-    return fs_util_set_access_mode(fso, type, ptr, who, action, 0);
+    return fs_util_set_access_mode(fso, type, ptr, who, action, 0		);
 }
 
 unsigned char FS_util_set_owner(struct fs_object_s *fso, unsigned char type, void *ptr, struct user_s *user)

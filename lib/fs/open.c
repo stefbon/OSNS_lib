@@ -113,32 +113,32 @@ unsigned char FS_open(struct fs_object_s *fsor, const unsigned char type, void *
 #ifdef __linux__
 
     {
-        unsigned int length=strlen(name);
 
-        if (length==0) {
+	int fdr=(fsor ? IO_object_backend_get_unix_fd(&fsor->backend) : -1);
+        int fd=0;
 
-            logoutput_debug("%s: unable to open ... empty path ... error %u (%s)", __FUNCTION__, EINVAL, strerror(EINVAL));
+	flags |= (O_NONBLOCK | O_CLOEXEC); /* always nonblocking and close on exec */
+
+	if (strlen(name)) {
+
+    	    fd=openat(fdr, name, flags, (init ? init->mode : 0755));
+
+	} else {
+
+	    fd=dup(fdr);
+
+	}
+
+        if (fd>=0) {
+
+            logoutput_debug("%s: open %s with fd %u and flags %u", __FUNCTION__, name, fd, fso->openflags);
+            if (fso->backend.type==0) IO_object_backend_init(&fso->backend, IO_OBJECT_BACKEND_TYPE_FD);
+            IO_object_backend_set_unix_fd(&fso->backend, fd);
+            result=1;
 
         } else {
-            int fdr=(fsor ? IO_object_backend_get_unix_fd(&fsor->backend) : -1);
-            int fd=0;
 
-	    flags |= (O_NONBLOCK | O_CLOEXEC); /* always nonblocking and close on exec */
-
-            fd=openat(fdr, name, flags, (init ? init->mode : 0755));
-
-            if (fd>=0) {
-
-                logoutput_debug("%s: open %s with fd %u and flags %u", __FUNCTION__, name, fd, fso->openflags);
-                if (fso->backend.type==0) IO_object_backend_init(&fso->backend, IO_OBJECT_BACKEND_TYPE_FD);
-                IO_object_backend_set_unix_fd(&fso->backend, fd);
-                result=1;
-
-            } else {
-
-                logoutput_debug("%s: unable to open %s with flags %u ... error %u (%s)", __FUNCTION__, name, fso->openflags, errno, strerror(errno));
-
-            }
+            logoutput_debug("%s: unable to open %s with flags %u ... error %u (%s)", __FUNCTION__, name, fso->openflags, errno, strerror(errno));
 
         }
 

@@ -9,6 +9,14 @@
 #include "libosns-pid.h"
 #include "libosns-module.h"
 
+#ifdef HAVE_LDAP
+
+#include <ldap.h>
+
+#endif
+
+struct osns_ctx_s;
+
 // #include "osns-protocol.h"
 
 #define OSNS_DATA_LINK_TYPE_CONTEXT					1
@@ -30,6 +38,64 @@ struct osns_data_link_s {
 };
 
 #define OSNS_DATA_LINK_INIT						{0}
+
+/* database */
+
+#define OSNS_DB_TYPE_FS							0
+#define OSNS_DB_TYPE_LDAP						1
+#define OSNS_DB_TYPE_SQLITE						2
+
+struct osns_db_handle_s {
+    unsigned char							type;
+    struct list_element_s						list;
+    struct osns_ctx_s							*octx;
+    union osns_sb_hamdle_u {
+
+#ifdef HAVE_LDAP
+
+	LDAP								*ld;
+
+#endif
+
+#ifdef HAVE_SQLITE
+
+	sqlite3								*sql;
+
+#endif
+
+	struct fs_object_s						*fso;
+
+    } db;
+
+};
+
+union osns_db_base_u {
+    char								*name;
+    char								*ldap;
+};
+
+#define OSNS_DB_CTX_LOCK_HANDLES					1
+
+struct osns_db_ctx_s {
+    unsigned char							type;
+    unsigned int							lock;
+    struct list_header_s						handles;
+    union osns_db_ctx_u {
+	struct fs_path_s						root;
+	const char							*bn;
+    } db;
+};
+
+struct osns_value_s {
+    unsigned char							type;
+    void								*ptr;
+};
+
+#define OSNS_DNSSD_MODUS_REMOVE_TREE					-2
+#define OSNS_DNSSD_MODUS_REMOVE						-1
+#define OSNS_DNSSD_MODUS_IGNORE						0
+#define OSNS_DNSSD_MODUS_INSERT_OR_REPLACE				1
+#define OSNS_DNSSD_MODUS_INSERT_OR_IGNORE				2
 
 #define OSNS_OPTION_ORIGIN_INIT                                         0
 #define OSNS_OPTION_ORIGIN_DEFAULT                                      1
@@ -465,6 +531,7 @@ struct osns_ctx_s {
     struct osns_event_ctx_s                                             *event_ctx;
     struct osns_process_ctx_s                                           *process_ctx;
     struct osns_fuse_ctx_s						*fuse_ctx;
+    struct osns_db_ctx_s						*db_ctx;
     struct list_header_s                                                actions;
 };
 

@@ -43,12 +43,14 @@ struct dnssd_manager_s {
     void                                        (* start)();
     void                                        (* refresh)();
     void                                        (* finish)();
+    void					*ptr;
 };
 
 static struct dnssd_manager_s manager = {
     .start                              = dnssd_manager_start_init,
     .refresh                            = dnssd_manager_refresh_init,
     .finish                             = dnssd_manager_finish_init,
+    .ptr				= NULL,
 };
 
 static unsigned char dnssd_add_mdns_socket_cb(struct io_connection_object_s *ico, unsigned int flags, void *ptr)

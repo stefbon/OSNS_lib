@@ -28,6 +28,61 @@
 
 #include "fs.h"
 
+static unsigned int FS_parse_rw_how(const char *how)
+{
+    struct dstr_s tmp=DSTR_INIT;
+    struct dstr_s part=DSTR_INIT;
+    unsigned int flags=0;
+
+    DSTR_set_bytes_raw(&tmp, how, 0, 0);
+
+    while (DSTR_get_first_dstr(&tmp, ',', &part, 1, 1)) {
+
+	if (DSTR_cmp_bytes(&part, "append", 0, 1, 0, 1)) {
+
+	    flags |= RWF_APPEND;
+
+	} else if (DSTR_cmp_bytes(&part, "dsync", 0, 1, 0, 1)) {
+
+	    flags |= RWF_DSYNC;
+
+	} else if (DSTR_cmp_bytes(&part, "hipri", 0, 1, 0, 1)) {
+
+	    flags |= RWF_HIPRI;
+
+	} else if (DSTR_cmp_bytes(&part, "sync", 0, 1, 0, 1)) {
+
+	    flags |= RWF_SYNC;
+
+	} else if (DSTR_cmp_bytes(&part, "nowait", 0, 1, 0, 1)) {
+
+	    flags |= RWF_NOWAIT;
+
+	} else if (DSTR_cmp_bytes(&part, "noappend", 0, 1, 0, 1)) {
+
+	    flags |= RWF_NOAPPEND;
+
+	} else if (DSTR_cmp_bytes(&part, "atomic", 0, 1, 0, 1)) {
+
+	    flags |= RWF_ATOMIC;
+
+	} else if (DSTR_cmp_bytes(&part, "dontcache", 0, 1, 0, 1)) {
+
+	    flags |= RWF_DONTCACHE;
+
+	} else {
+
+	    logoutput_debug("%s: flagstr %.*s not reckognized", __FUNCTION__, part.length, part.str);
+
+	}
+
+    }
+
+    return flags;
+
+}
+
+
 unsigned char FS_fsync(struct fs_object_s *fso, const char *what)
 {
     unsigned char result=0;
@@ -76,15 +131,15 @@ unsigned char FS_fsync(struct fs_object_s *fso, const char *what)
 
 }
 
-off64_t FS_pread(struct fs_object_s *fso, char *buffer, size_t size, off64_t offset)
+off64_t FS_pread(struct fs_object_s *fso, char *buffer, size_t size, off64_t offset, const char *how)
 {
     off64_t result=0;
+    unsigned int flags=(how ? FS_parse_rw_how(how) : 0);
 
 #ifdef __linux__
 
     int fd=IO_object_backend_get_unix_fd(&fso->backend);
     struct iovec iov[1];
-    unsigned int flags=fso->readflags;
     ssize_t tmp=0;
 
     iov[0].iov_base=buffer;
@@ -108,15 +163,15 @@ off64_t FS_pread(struct fs_object_s *fso, char *buffer, size_t size, off64_t off
     return result;
 }
 
-off64_t FS_pwrite(struct fs_object_s *fso, char *buffer, size_t size, off_t offset)
+off64_t FS_pwrite(struct fs_object_s *fso, char *buffer, size_t size, off_t offset, const char *how)
 {
     off64_t result=0;
+    unsigned int flags=(how ? FS_parse_rw_how(how) : 0);
 
 #ifdef __linux__
 
     int fd=IO_object_backend_get_unix_fd(&fso->backend);
     struct iovec iov[1];
-    unsigned int flags=fso->writeflags;
     ssize_t tmp=0;
 
     iov[0].iov_base=buffer;

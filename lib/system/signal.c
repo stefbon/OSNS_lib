@@ -284,6 +284,10 @@ int SYSTEM_signal_monitor_start(struct beventloop_s *eloop, struct event_shared_
 
     }
 
+    /* remove SIGUSR2 for communication betwen applivation adn epoll loop */
+
+    sigdelset(&sigset, SIGUSR2);
+
     if (sigprocmask(SIG_SETMASK, &sigset, NULL)==0) {
         int fd=-1;
 

@@ -16,6 +16,7 @@
 
 #include <sys/wait.h>
 #include <sys/epoll.h>
+#include <signal.h>
 
 #define EPOLL_EVENT_BUFFER_LENGTH               32
 
@@ -189,12 +190,16 @@ int BEVENTLOOP_backend_start(struct beventloop_s *eloop)
 {
     struct epoll_event aevents[EPOLL_EVENT_BUFFER_LENGTH];
     int result=0;
+    sigset_t mask;
+
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGUSR2);
 
     EVENT_signal_set_flag(eloop->esignal, &eloop->flags, BEVENTLOOP_FLAG_START);
 
     while ((eloop->flags & BEVENTLOOP_FLAG_STOP)==0) {
 
-	int tmp=epoll_wait(eloop->backend.epoll.fd, aevents, EPOLL_EVENT_BUFFER_LENGTH, -1);
+	int tmp=epoll_pwait(eloop->backend.epoll.fd, aevents, EPOLL_EVENT_BUFFER_LENGTH, -1, &mask);
 
 	if (tmp>0) {
 
@@ -213,6 +218,10 @@ int BEVENTLOOP_backend_start(struct beventloop_s *eloop)
         	}
 
 	    }
+
+	} else if (tmp==0) {
+
+	    logoutput_debug("%s: eventloop woken upp (signal?)", __FUNCTION__);
 
 	} else if (tmp==-1) {
 

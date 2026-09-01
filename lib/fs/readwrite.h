@@ -33,7 +33,7 @@
 unsigned char FS_fsync(struct fs_object_s *fso, const char *what);
 
 off64_t FS_pread(struct fs_object_s *fso, char *buffer, size_t size, off64_t offset);
-off64_t FS_pwrite(struct fs_object_s *fso, char *buffer, size_t size, off_t offset);
+off64_t FS_pwrite(struct fs_object_s *fso, char *buffer, size_t size, off_t offset, const char *how);
 off64_t FS_lseek(struct fs_object_s *fso, off64_t offset, int whence);
 off64_t FS_readdentry(struct fs_object_s *fso, struct fs_dentry_s *dentry, unsigned char next);
 

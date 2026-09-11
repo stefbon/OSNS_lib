@@ -125,8 +125,15 @@ struct osns_option_uint_s {
 
 #define OSNS_OPTIONS_MAIN_MAXTHREADS					20
 
+struct osns_fuse_network_protocol_s {
+    struct dstr_s							protocol;
+    struct dstr_s							groupname;
+};
+
 struct osns_client_options_s {
     struct dstr_s							services;
+    unsigned int							fuse_default_blocksize;
+    struct osns_fuse_network_protocol_s					*protocols;
 };
 
 struct osns_options_s {
@@ -208,14 +215,6 @@ struct osns_process_s {
 struct osns_process_ctx_s {
     unsigned int                                                        lock;
     struct list_header_s                                                processes;
-};
-
-/* FUSE ctx */
-
-struct osns_fuse_ctx_s {
-    struct list_header_s						modules;
-    struct list_header_s						interfaces;
-    struct list_header_s						workspaces;
 };
 
 #define _IO_OPTION_TYPE_INT				1
@@ -475,18 +474,29 @@ struct service_context_s {
 #define OSNS_WORKSPACE_STATUS_INIT					1
 #define OSNS_WORKSPACE_STATUS_CLEAR					2
 
-struct osns_workspace_s {
-    unsigned char 							type;
-    unsigned char							group;
-    unsigned int							flags;
-    unsigned int							status;
-    struct event_shared_signal_s					*esignal;
-    struct timespec_s							syncdate;
-    struct list_header_s						contexes;
-    struct list_element_s						list;
-};
-
 #define OSNS_MODULE_TYPE_FUSE						1
+
+#define OSNS_FUSE_SERVICE_INDEX_NETWORK					0
+#define OSNS_FUSE_SERVICE_INDEX_DEVICES					1
+#define OSNS_FUSE_SERVICE_INDEX_BACKUP					2
+#define OSNS_FUSE_SERVICE_INDEX_CONTAINER				3
+#define OSNS_FUSE_SERVICE_INDEX_VARIOUS					4
+#define OSNS_FUSE_SERVICE_INDEX_CONNECTOR				5
+
+#define OSNS_FUSE_SERVICE_TYPE_NETWORK					(1 << OSNS_FUSE_SERVICE_INDEX_NETWORK)
+#define OSNS_FUSE_SERVICE_TYPE_DEVICES					(1 << OSNS_FUSE_SERVICE_INDEX_DEVICES)
+#define OSNS_FUSE_SERVICE_TYPE_BACKUP					(1 << OSNS_FUSE_SERVICE_INDEX_BACKUP)
+#define OSNS_FUSE_SERVICE_TYPE_CONTAINER				(1 << OSNS_FUSE_SERVICE_INDEX_CONTAINER)
+#define OSNS_FUSE_SERVICE_TYPE_VARIOUS					(1 << OSNS_FUSE_SERVICE_INDEX_VARIOUS)
+#define OSNS_FUSE_SERVICE_TYPE_CONNECTOR				(1 << OSNS_FUSE_SERVICE_INDEX_CONNECTOR)
+
+/* FUSE ctx */
+
+struct osns_fuse_ctx_s {
+    struct list_header_s						modules;
+    struct context_interface_s						workspaces[6];
+    struct list_header_s						interfaces;
+};
 
 struct osns_module_s {
     char								*name;

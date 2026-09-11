@@ -163,3 +163,30 @@ void OSNS_action_add(struct osns_ctx_s *octx, struct osns_ctx_action_s *action)
 {
     LIST_header_add_last(&octx->actions, &action->list);
 }
+
+/*int OSNS_read_start(struct osns_ctx_s *octx)
+{
+    struct fs_path_s path=FS_PATH_INIT;
+    struct osns_options_s *options=octx->options;
+    int result=-1;
+    unsigned int length=strlen(optons->role.client.
+    char name[
+
+    FS_path_append_init(&path, FS_PATH_FLAG_BUFFER_ALLOC);
+*/
+    /* construct a path like /etc/osns/start/*/
+/*
+    if (options->etcpath.value.start.length) {
+
+        if (FS_path_append(&path, 'p', (void *) &options->etcpath.value, 0)==0) goto out;
+
+    } else {
+
+        if (FS_path_append(&path, 'c', (void *) OSNS_DEFAULT_ETCPATH, 0)==0) goto out;
+
+    }
+
+    if (FS_path_append(&path, 'c', (void *) "start", 1)==0) goto out;
+    
+}
+*/

@@ -4,7 +4,7 @@
 
 #include "libosns-log.h"
 #include "libosns-event.h"
-#include "libosns-lsut.h"
+#include "libosns-list.h"
 
 #include "lock.h"
 
@@ -23,7 +23,7 @@ void LOCK_init(struct lock_s *lock, unsigned char type)
 {
     lock->type=type;
     lock->threadid=(unsigned long) pthread_self();
-    LIST_element_init(&lock->list);
+    LIST_element_init(&lock->list, NULL);
 }
 
 unsigned char LOCK_set_readlock(struct locking_s *locking, struct lock_s *lock, struct timespec_s *timeout)
@@ -52,7 +52,7 @@ unsigned char LOCK_set_readlock(struct locking_s *locking, struct lock_s *lock, 
 
     locking->lock += 4;
     lock->lock = 4;
-    EVENT_signal_unlock(lesignal);
+    EVENT_signal_unlock(esignal);
     return 1;
 
 }
@@ -73,6 +73,7 @@ void LOCK_unset_readlock(struct locking_s *locking, struct lock_s *lock)
 
 static unsigned char lock_set_writelock(struct locking_s *locking, struct lock_s *lock, struct timespec_s *timeout)
 {
+    struct event_shared_signal_s *esignal=locking->esignal;
 
     LIST_header_add_last(&locking->writers, &lock->list);
 
@@ -143,7 +144,7 @@ void LOCK_unset_writelock(struct locking_s *locking, struct lock_s *lock)
     EVENT_signal_lock(locking->esignal);
 
     if (lock->list.h==&locking->writers) LIST_element_remove(&lock->list);
-    if (locking->wriiter==&lock->list) locking->writer=NULL;
+    if (locking->writer==&lock->list) locking->writer=NULL;
 
     locking->lock-=lock->lock;
     lock->lock=0;

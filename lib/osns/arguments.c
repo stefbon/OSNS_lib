@@ -17,8 +17,6 @@ int OSNS_parse_arguments(int argc, char *argv[], struct osns_arguments_s *argume
 	{NULL,0,0,0},
 	{NULL,0,0,0},
 	{NULL,0,0,0},
-	{NULL,0,0,0},
-	{NULL,0,0,0},
     };
     int result=0;
     unsigned int index=1;
@@ -33,32 +31,12 @@ int OSNS_parse_arguments(int argc, char *argv[], struct osns_arguments_s *argume
 
     }
 
-    if (flags & OSNS_ARGUMENT_SOCKETACTIVATION) {
+    if (flags & OSNS_ARGUMENT_PROFILE) {
 
-        long_options[index].name="socketactivation";
-        long_options[index].has_arg=no_argument;
-        long_options[index].flag=NULL;
-        long_options[index].val=OSNS_ARGINDEX_SOCKETACTIVATION;
-        index++;
-
-    }
-
-    if (flags & OSNS_ARGUMENT_PIDFILE) {
-
-        long_options[index].name="pidfile";
-        long_options[index].has_arg=no_argument;
-        long_options[index].flag=NULL;
-        long_options[index].val=OSNS_ARGINDEX_PIDFILE;
-        index++;
-
-    }
-
-    if (flags & OSNS_ARGUMENT_PPID) {
-
-        long_options[index].name="ppid";
+        long_options[index].name="profile";
         long_options[index].has_arg=required_argument;
         long_options[index].flag=NULL;
-        long_options[index].val=OSNS_ARGINDEX_PPID;
+        long_options[index].val=OSNS_ARGINDEX_PROFILE;
         index++;
 
     }
@@ -66,8 +44,6 @@ int OSNS_parse_arguments(int argc, char *argv[], struct osns_arguments_s *argume
 
     while (result==0) {
 	int tmp = getopt_long(argc, argv, "", long_options, NULL);
-
-        logoutput_debug("%s: result getopt %i", __FUNCTION__, tmp);
 
 	if (tmp==-1) {
 
@@ -82,18 +58,10 @@ int OSNS_parse_arguments(int argc, char *argv[], struct osns_arguments_s *argume
 
             arguments->flags |= OSNS_ARGUMENT_FORK;
 
-        } else if (tmp==OSNS_ARGINDEX_SOCKETACTIVATION) {
+        } else if (tmp==OSNS_ARGINDEX_PROFILE) {
 
-            arguments->flags |= OSNS_ARGUMENT_SOCKETACTIVATION;
-
-        } else if (tmp==OSNS_ARGINDEX_PIDFILE) {
-
-            arguments->flags |= OSNS_ARGUMENT_PIDFILE;
-
-        } else if (tmp==OSNS_ARGINDEX_PPID) {
-
-            arguments->flags |= OSNS_ARGUMENT_PPID;
-            arguments->pid=atoi(optarg);
+            arguments->flags |= OSNS_ARGUMENT_PROFILE;
+            arguments->startprofile=strdup(optarg);
 
         } else if (tmp=='?') {
 

@@ -40,6 +40,7 @@ struct mdns_socket_s {
 
 void DNSSD_init(struct mdns_socket_ctx_s *mctx);
 void DNSSD_start();
+void DNSSD_refresh();
 void DNSSD_finish();
 
 #endif

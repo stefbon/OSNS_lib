@@ -90,6 +90,8 @@ void OSNS_config_init(struct osns_options_s *options, unsigned char role)
     if (role==OSNS_CTX_ROLE_CLIENT) {
 
         DSTR_init(&options->role.client.services);
+        options->role.client.fuse_default_blocksize=4096;
+        options->role.client.protocols=NULL;
 
     }
 

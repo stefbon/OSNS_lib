@@ -5,10 +5,11 @@
 #include <math.h>
 
 #include "libosns-log.h"
-#include "libosns-lsut.h"
+#include "libosns-list.h"
 #include "libosns-datatypes.h"
 
 #include "sl.h"
+#include "lock.h"
 
 static struct sl_node_s *SL_get_next_node(struct sl_node_s *node, unsigned int level, unsigned char next)
 {
@@ -16,7 +17,7 @@ static struct sl_node_s *SL_get_next_node(struct sl_node_s *node, unsigned int l
 
     /* there is always a next or prev */
 
-    return struct sl_node_s *)((char *) slj - (level * sizeof(struct sl_junction_s)) - offsetof(struct sl_node_s, junction));
+    return (struct sl_node_s *)((char *) slj - (level * sizeof(struct sl_junction_s)) - offsetof(struct sl_node_s, junction));
 }
 
 static unsigned int SL_calculate_level(struct sl_s *sl)
@@ -28,7 +29,7 @@ static unsigned int SL_calculate_level(struct sl_s *sl)
 
 	/* enough nodes on this level ? */
 
-	if ((multiplier * sl->ncount[i].count) > sl->node.list->header->count) break;
+	if ((multiplier * sl->ncount[i].count) > sl->node.list.header->count) break;
 	level++;
 	multiplier *= sl->distance;
 
@@ -61,10 +62,10 @@ static void SL_resize_head_junction(struct sl_s *sl, unsigned int height)
 	    struct sl_node_s *np=NULL;
 
 	    np=SL_get_next_node(&sl->node, i, 1);
-	    np->prev=&sl->node->junction[i];
+	    np->junction[i].next=&sl->node.junction[i];
 
 	    np=SL_get_next_node(&sl->node, i, 0);
-	    np->next=&sl->node->junction[i];
+	    np->junction[i].prev=&sl->node.junction[i];
 	}
 
     }
@@ -75,9 +76,9 @@ static void SL_resize_head_junction(struct sl_s *sl, unsigned int height)
 
 	for (unsigned int i=sl->height; i<height; i++) {
 
-	    sl->node->junction[i].next=&sl->node->junction[i];
-	    sl->node->junction[i].prev=&sl->node->junction[i];
-	    sl->node->junction[i].step=sl->node.list->header->count;
+	    sl->node.junction[i].next=&sl->node.junction[i];
+	    sl->node.junction[i].prev=&sl->node.junction[i];
+	    sl->node.junction[i].step=sl->node.list.header->count;
 
 	    sl->ncount[i].count=0;
 
@@ -109,7 +110,7 @@ static void SL_node_insert(struct sl_s *sl, struct sl_node_s *node, struct list_
 
     */
 
-    sln=malloc(sizeof(struct node_s));
+    sln=malloc(sizeof(struct sl_node_s));
     slj=malloc(height * sizeof(struct sl_junction_s));
 
     if ((sln==NULL) || (slj==NULL)) {
@@ -120,12 +121,12 @@ static void SL_node_insert(struct sl_s *sl, struct sl_node_s *node, struct list_
 
     }
 
-    memset(sln, 0, sizeof(struct node_s));
+    memset(sln, 0, sizeof(struct sl_node_s));
     memset(slj, 0, height * sizeof(struct sl_junction_s));
 
     sln->type=SL_NODE_TYPE_BETWEEN;
     sln->list.list=NULL;
-    sln->count=level;
+    sln->count=height;
     sln->junction=slj;
 
     /* resize head junction if required */
@@ -157,11 +158,11 @@ static void SL_node_insert(struct sl_s *sl, struct sl_node_s *node, struct list_
     for (unsigned int i=0; i<height; i++) {
 	struct sl_node_s *next=SL_get_next_node(node, i, 1);
 
-	slj[i].next=next->junction[i];
+	slj[i].next=&next->junction[i];
 	next->junction[i].prev=&slj[i];
 	slj[i].step=node->junction[i].step + 1 - step;
 
-	slj[i].prev=node->junction[i];
+	slj[i].prev=&node->junction[i];
 	node->junction[i].next=&slj[i];
 	node->junction[i].step=step;
 
@@ -174,7 +175,7 @@ static void SL_node_insert(struct sl_s *sl, struct sl_node_s *node, struct list_
 
 }
 
-static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_result *slr)
+static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_result_s *slr)
 {
     struct sl_node_s *next=NULL;
     unsigned int level=0;
@@ -185,14 +186,14 @@ static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_res
     slr->level=slr->node->count-1;
     slr->type=SL_NODE_LOCK_SCOPE_RIGHT;
 
-    tmp=SL_node_set_readlock_self(sl, slr->node);
-    tmp=SL_node_set_readlock_get_prev(sl, slr->node);
+    tmp=SL_node_set_readlock_self(sl, slr);
+    tmp=SL_node_set_readlock_get_prev(sl, slr);
 
     /* check first the boundaries: before the first or after the last */
 
     /* try last */
 
-    slr->list=LIST_header_get_last(nsl->node->list.header);
+    slr->list=LIST_header_get_last(sl->node.list.header);
     result=(* sl->compare)(slr->list, lookupdata, sl->ptr);
 
     if (result<=0) {
@@ -221,7 +222,7 @@ static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_res
 
     tmp=SL_node_set_readlock_get_next(sl, slr);
 
-    slr->list=LIST_header_get_first(nsl->node->list.header);
+    slr->list=LIST_header_get_first(sl->node.list.header);
     result=(* sl->compare)(slr->list, lookupdata, sl->ptr);
     slr->type=SL_NODE_LOCK_SCOPE_LEFT;
 
@@ -268,7 +269,7 @@ static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_res
 
 	}
 
-	slr->list=((slr->next->type==SL_NODE_TYPE_BETWEEN) ? slr->next->list.list : LIST_header_get_last(sl->next->list.header));
+	slr->list=((slr->next->type==SL_NODE_TYPE_BETWEEN) ? slr->next->list.list : LIST_header_get_last(sl->node.list.header));
 	result=(* sl->compare)(slr->list, lookupdata, sl->ptr);
 
     } else {
@@ -321,7 +322,7 @@ static void SL_find_shared(struct sl_s *sl, void *lookupdata, struct sl_find_res
 
 }
 
-static unsigned char SL_find_exact(struct sl_s *sl, void *lookupdata, struct sl_find_result *slr)
+static unsigned char SL_find_exact(struct sl_s *sl, void *lookupdata, struct sl_find_result_s *slr)
 {
     unsigned char result=0;
 
@@ -381,7 +382,7 @@ static unsigned char SL_find_exact(struct sl_s *sl, void *lookupdata, struct sl_
     if (slr->code==SL_FIND_RESULT_CODE_BEFORE) {
 	struct sl_node_s *prev=SL_get_next_node(slr->node, 0, 0);
 
-	slr->step=prev->step - slr->step;
+	slr->step=prev->junction[0].step - slr->step;
 
     }
 
@@ -392,17 +393,16 @@ static unsigned char SL_find_exact(struct sl_s *sl, void *lookupdata, struct sl_
 
 unsigned char SL_find(struct sl_s *sl, void *lookupdata, struct list_element_s **p_list)
 {
-    struct sl_find_result slr=SL_FIND_RESULT_INIT;
+    struct sl_find_result_s slr=SL_FIND_RESULT_INIT;
 
-    return SL_find_exact(sl, lookupdata, &slr, p_list);
+    return SL_find_exact(sl, lookupdata, &slr);
 }
 
 unsigned char SL_insert(struct sl_s *sl, void *lookupdata, struct list_element_s *list)
 {
-    struct sl_find_result slr=SL_FIND_RESULT_INIT;
-    struct list_element_s *found=NULL;
+    struct sl_find_result_s slr=SL_FIND_RESULT_INIT;
 
-    if (SL_find_exact(sl, lookupdata, &slr, &found)) {
+    if (SL_find_exact(sl, lookupdata, &slr)) {
 
 	logoutput_debug("%s: cannot insert ... already exist", __FUNCTION__);
 	return 0;
@@ -424,12 +424,12 @@ unsigned char SL_insert(struct sl_s *sl, void *lookupdata, struct list_element_s
 
 	} else {
 
-	    LIST_element_insert_before(slr.list, list);
+	    LIST_element_add_before(slr.list, list);
 
 	    /* TODO:
 		add extra node if distance to next node gets too big */
 
-	    SL_node_insert(sl, slr.node, list, slr.step)
+	    SL_node_insert(sl, slr.node, list, slr.step);
 
 
 	}
@@ -444,12 +444,12 @@ unsigned char SL_insert(struct sl_s *sl, void *lookupdata, struct list_element_s
 
 	} else {
 
-	    LIST_element_insert_after(slr.list, list);
+	    LIST_element_add_after(slr.list, list);
 
 	    /* TODO:
 		add extra node if distance to next node gets too big */
 
-	    SL_node_insert(sl, slr.node, list, slr.step)
+	    SL_node_insert(sl, slr.node, list, slr.step);
 
 	}
 

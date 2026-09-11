@@ -27,7 +27,7 @@ shared_lib_io_sources = lib/io/backend.c lib/io/buffer.c lib/io/io.c lib/io/util
 shared_lib_io_sources += lib/io/system/copy.c lib/io/system/init.c
 shared_lib_ldap_sources = lib/ldap/ldap.c
 shared_lib_list_sources = lib/list/header.c lib/list/insert.c lib/list/list.c lib/list/lock.c lib/list/next.c lib/list/remove.c lib/list/utils.c
-shared_lib_lock_sources = lib/lock.c
+shared_lib_lock_sources = lib/lock/lock.c
 shared_lib_main_sources = lib/main/error.c lib/main/localthreads.c lib/main/logging.c
 shared_lib_misc_sources = lib/misc/txtutils.c lib/misc/numutils.c
 shared_lib_module_sources = lib/module/module.c
@@ -46,8 +46,8 @@ shared_lib_time_sources = lib/time/time.c
 
 lib_LTLIBRARIES += libosns.la
 
-libosns_la_SOURCES = $(shared_lib_connection_sources) $(shared_lib_datatypes_sources) $(shared_lib_dnssd_sources) $(shared_lib_eventloop_sources) $(shared_lib_event_sources) $(shared_lib_file_sources) $(shared_lib_fs_sources) $(shared_lib_hashtable_sources) $(shared_lib_io_sources) $(shared_lib_list_sources) $(shared_lib_lcok_sources) $(shared_lib_ldap_sources) $(shared_lib_main_sources) \
-                    $(shared_lib_misc_sources) $(shared_lib_module_sources) $(shared_lib_mountinfo_sources) $(shared_lib_network_sources) $(shared_lib_osns_sources) $(shared_lib_path_sources) $(shared_lib_pid_sources) $(shared_lib_socket_sources) $(shared_lib_system_sources) $(shared_lib_user_sources) $(shared_lib_time_sources)
+libosns_la_SOURCES = $(shared_lib_connection_sources) $(shared_lib_datatypes_sources) $(shared_lib_dnssd_sources) $(shared_lib_eventloop_sources) $(shared_lib_event_sources) $(shared_lib_file_sources) $(shared_lib_fs_sources) $(shared_lib_hashtable_sources) $(shared_lib_io_sources) $(shared_lib_list_sources) $(shared_lib_lock_sources) $(shared_lib_ldap_sources) $(shared_lib_main_sources) \
+                    $(shared_lib_misc_sources) $(shared_lib_module_sources) $(shared_lib_mountinfo_sources) $(shared_lib_network_sources) $(shared_lib_osns_sources) $(shared_lib_path_sources) $(shared_lib_pid_sources) $(shared_lib_sl_sources) $(shared_lib_socket_sources) $(shared_lib_system_sources) $(shared_lib_user_sources) $(shared_lib_time_sources)
 
 # libosns_system_la_SOURCES = $(shared_lib_mountinfo_sources) $(shared_lib_dnssd_sources)
 

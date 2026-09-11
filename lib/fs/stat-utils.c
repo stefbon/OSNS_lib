@@ -458,8 +458,19 @@ void FS_stat_decrease_nlink(struct fs_stat_s *fst, int32_t count)
 
 static void copy_timespec2statxtime(struct fs_stat_s *fst, struct timeval_s *stt, struct timespec_s *time, unsigned int flag)
 {
-    stt->tv_sec=(int64_t) time->st_sec;
-    stt->tv_nsec=(uint32_t) time->st_nsec;
+
+    if (time) {
+
+        stt->tv_sec=(int64_t) time->st_sec;
+	stt->tv_nsec=(uint32_t) time->st_nsec;
+
+    } else {
+
+	stt->tv_sec=0;
+	stt->tv_nsec=0;
+
+    }
+
     fst->mask |= flag;
 }
 

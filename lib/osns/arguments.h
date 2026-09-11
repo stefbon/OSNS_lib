@@ -22,22 +22,19 @@
 
 #define OSNS_ARGINDEX_HELP                      0
 #define OSNS_ARGINDEX_FORK                      1
-#define OSNS_ARGINDEX_SOCKETACTIVATION          2
-#define OSNS_ARGINDEX_PIDFILE                   3
-#define OSNS_ARGINDEX_PPID                      4
+#define OSNS_ARGINDEX_PROFILE			2
 
 #define OSNS_ARGUMENT_HELP                      (1 << OSNS_ARGINDEX_HELP)
 #define OSNS_ARGUMENT_FORK                      (1 << OSNS_ARGINDEX_FORK)
-#define OSNS_ARGUMENT_SOCKETACTIVATION          (1 << OSNS_ARGINDEX_SOCKETACTIVATION)
-#define OSNS_ARGUMENT_PIDFILE                   (1 << OSNS_ARGINDEX_PIDFILE)
-#define OSNS_ARGUMENT_PPID                      (1 << OSNS_ARGINDEX_PPID)
+#define OSNS_ARGUMENT_PROFILE                   (1 << OSNS_ARGINDEX_PROFILE)
 
 struct osns_arguments_s {
     unsigned int                flags;
     pid_t                       pid;
+    char			*startprofile;
 };
 
-#define OSNS_ARGUMENT_INIT                      {0, 0}
+#define OSNS_ARGUMENT_INIT                      {0, 0, NULL}
 
 /* Prototypes */
 

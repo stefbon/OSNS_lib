@@ -3,6 +3,9 @@
 #ifndef SL_SL_H
 #define SL_SL_H
 
+#include  "libosns-event.h"
+#include "libosns-lock.h"
+
 #define SL_DISTANCE_DEFAULT		5
 
 struct sl_junction_s {
@@ -20,7 +23,6 @@ struct sl_node_count_s {
 
 #define SL_NODE_LOCK_TYPE_READ		4
 #define SL_NODE_LOCK_TYPE_WRITE		2
-
 
 struct sl_node_s {
     unsigned char			type;
@@ -58,6 +60,7 @@ struct sl_s {
 struct sl_find_result_s {
     unsigned char			type;
     unsigned int			lock;
+    unsigned int			step;
     struct sl_node_s			*node;
     struct sl_node_s			*next;
     unsigned char			scope;
@@ -67,6 +70,12 @@ struct sl_find_result_s {
     struct list_element_s 		*list;
 };
 
-#define SL_FIND_RESULT_INIT		{SL_NODE_LOCK_TYPE_READ, 0, NULL, NULL, SL_NODE_LOCK_SCOPE_STANDARD, 0, 0, 0, NULL}
+#define SL_FIND_RESULT_INIT		{SL_NODE_LOCK_TYPE_READ, 0, 0, NULL, NULL, SL_NODE_LOCK_SCOPE_STANDARD, 0, 0, 0, NULL}
+
+/* prototypes */
+
+unsigned char SL_find(struct sl_s *sl, void *lookupdata, struct list_element_s **p_list);
+unsigned char SL_insert(struct sl_s *sl, void *lookupdata, struct list_element_s *list);
+unsigned char SL_remove(struct sl_s *sl, void *lookupdata, struct list_element_s *list);
 
 #endif

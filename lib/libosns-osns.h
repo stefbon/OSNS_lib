@@ -9,7 +9,7 @@
 #include "osns/event.h"
 #include "osns/interface.h"
 #include "osns/modules.h"
-
+#include "osns/pidfile.h"
 #include "osns/start.h"
 #include "osns/utils.h"
 

@@ -498,16 +498,29 @@ struct osns_fuse_ctx_s {
     struct list_header_s						interfaces;
 };
 
+#define OSNS_CTX_ACTION_CODE_DO                                         1
+#define OSNS_CTX_ACTION_CODE_UNDO                                       2
+
+#define OSNS_MODULE_STATUS_LOADED					1
+#define OSNS_MODULE_STATUS_DONE                                     	2
+#define OSNS_MODULE_STATUS_ERROR                                    	4
+
+#define OSNS_MODULE_TYPE_INTERN						1
+#define OSNS_MODULE_TYPE_EXTERN						2
+
+#define OSNS_CTX_ACTION_FLAG_REFRESH					1
+#define OSNS_CTX_ACTION_FLAG_RELOAD					2
+
+struct osns_ctx_action_s {
+    const char                                                          *name;
+    int                                                                 (* manage)(struct osns_ctx_s *octx, unsigned char actioncode, struct osns_ctx_action_s *action, unsigned int flags);
+};
+
 struct osns_module_s {
-    char								*name;
-    unsigned int							type;
+    unsigned char							type;
     struct list_element_s						list;
-    union osns_module_u {
-	struct osns_fuse_module_s {
-	    unsigned int						flags;
-	} fuse;
-    } interface;
-    unsigned int							(* populate)(struct osns_ctx_s *octx, struct osns_module_s *omod, struct context_interface_ops_s *ops);
+    unsigned int                                                        status;
+    struct osns_ctx_action_s						*action;
     struct module_s							module;
 };
 
@@ -545,20 +558,6 @@ struct osns_ctx_s {
     struct list_header_s                                                actions;
 };
 
-#define OSNS_CTX_ACTION_CODE_DO                                         1
-#define OSNS_CTX_ACTION_CODE_UNDO                                       2
-
-#define OSNS_CTX_ACTION_STATUS_DONE                                     1
-#define OSNS_CTX_ACTION_STATUS_UNDONE                                   2
-#define OSNS_CTX_ACTION_STATUS_ERROR                                    4
-
-struct osns_ctx_action_s {
-    struct list_element_s                                               list;
-    const char                                                          *name;
-    unsigned int                                                        status;
-    int                                                                 (* manage)(struct osns_ctx_s *octx, unsigned char actioncode, struct osns_ctx_action_s *action);
-    void                                                                *ptr;
-};
 
 /* prototypes */
 

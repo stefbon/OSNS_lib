@@ -51,9 +51,17 @@ unsigned char OSNS_module_load(struct osns_ctx_s *octx, struct dstr_s *name, str
     return result;
 }
 
-void *OSNS_module_get_symbolptr(struct osns_module_s *module, const char *name)
+void *OSNS_module_get_symbolptr(struct osns_module_s *module, struct dstr_s *name)
 {
-    return MODULE_get_symbolptr(&module->module, name);
+    unsigned int length=DSTR_get_length(name);
+    char buffer[length+1];
+
+    if (length==0) return NULL;
+
+    memcpy(buffer, name->str, name->length);
+    buffer[length]='\0';
+
+    return MODULE_get_symbolptr(&module->module, buffer);
 }
 
 void OSNS_module_unload(struct osns_module_s *module)

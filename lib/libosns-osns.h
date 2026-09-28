@@ -6,11 +6,12 @@
 
 #include "osns/arguments.h"
 #include "osns/config.h"
-#include "osns/event.h"
 #include "osns/interface.h"
 #include "osns/modules.h"
-#include "osns/pidfile.h"
 #include "osns/start.h"
 #include "osns/utils.h"
+
+#include "osns/action-event.h"
+#include "osns/action-pidfile.h"
 
 #endif

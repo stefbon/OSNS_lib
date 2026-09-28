@@ -29,7 +29,12 @@ static int osns_process_actions_list(struct osns_ctx_s *octx, struct list_elemen
 
 	if (module->type==OSNS_MODULE_TYPE_EXTERN) {
 
-	    if ((module->status & OSNS_MODULE_STATUS_LOADED)==0) goto nextprev;
+	    if ((module->status & OSNS_MODULE_STATUS_LOADED)==0) {
+
+		logoutput_debug("%s: module not loaded .... skip", __FUNCTION__);
+		goto nextprev;
+
+	    }
 
 	}
 
@@ -39,11 +44,13 @@ static int osns_process_actions_list(struct osns_ctx_s *octx, struct list_elemen
 
     	if (actioncode==OSNS_CTX_ACTION_CODE_DO) {
 
+	    logoutput_debug("%s: starting module action %s", __FUNCTION__, action->name);
+
     	    result=(* action->manage)(octx, actioncode, action, 0);
 
     	    if (result==-1) {
 
-            	logoutput_debug("%s: action %s gives error .... cannot continue", __FUNCTION__);
+            	logoutput_debug("%s: module action %s gives error .... skip", __FUNCTION__, action->name);
             	module->status |= OSNS_MODULE_STATUS_ERROR;
             	break;
 
@@ -64,7 +71,7 @@ static int osns_process_actions_list(struct osns_ctx_s *octx, struct list_elemen
 
 	    if (module->type==OSNS_MODULE_TYPE_EXTERN) {
 
-		MODULE_unload(&module->module);
+		OSNS_module_unload(module);
 		module->status &= ~OSNS_MODULE_STATUS_LOADED;
 
 	    }
@@ -203,22 +210,73 @@ static unsigned char osns_read_startprofile_cb(struct dstr_s *line, void *ptr)
     struct osns_read_startprofile_hlpr_s *hlpr=(struct osns_read_startprofile_hlpr_s *) ptr;
     struct dstr_s part=DSTR_INIT;
     struct dstr_s tmp=DSTR_INIT;
+    struct dstr_s name=DSTR_INIT;
     struct osns_ctx_s *octx=hlpr->octx;
     struct osns_module_s *module=NULL;
+    struct dstr_s domainp1=DSTR_INIT;
+    struct dstr_s domainp2=DSTR_INIT;
+    char *sep=NULL;
+
+    /* possible may contain the delimiter (=newline or carriage return) */
+
+    sep=memchr(line->str, 13, line->length);
+    if (sep) {
+
+	*sep=0;
+	line->length=(unsigned int)(sep - line->str);
+
+    }
+
+    sep=memchr(line->str, 10, line->length);
+    if (sep) {
+
+	*sep=0;
+	line->length=(unsigned int)(sep - line->str);
+
+    }
 
     logoutput_debug("%s: found module %.*s", __FUNCTION__, line->length, line->str);
-
-    DSTR_set_str(&tmp, line, 0);
+    DSTR_set_str(&name, line, 0);
 
     /* check the bane:
-	ir has to end on .so and only one dot  */
+	ir has to end on .so and only one dot
+	more checks to do like first name is a domain
+    */
 
-    if ((DSTR_get_first_dstr(&tmp, '.', &part, 1, 0)==0) || (DSTR_cmp_bytes(&part, "so", 0, 1, 0, 0)==0)) {
+    if (DSTR_get_last_dstr(line, '.', &part, 1, 0)==0) {
 
 	logoutput_debug("%s: skip %.*s: no dot found", __FUNCTION__, line->length, line->str);
 	return 0;
 
     }
+
+    if (DSTR_cmp_bytes(&part, "so", 0, 1, 0, 0)==0) {
+
+	logoutput_debug("%s: skip %.*s: extension %.*s is not .so", __FUNCTION__, line->length, line->str, part.length, part.str);
+	return 0;
+
+    }
+
+    DSTR_set_str(&tmp, line, 0);
+
+    /* get the domain parts where the name begins with
+	note: the name is now in tmp, excluding the extension */
+
+    if (DSTR_get_first_dstr(&tmp, '_', &domainp1, 1, 0)==0) {
+
+	logoutput_debug("%s: skip %.*s: no domain p1 found", __FUNCTION__, line->length, line->str);
+	return 0;
+
+    }
+
+    if (DSTR_get_first_dstr(&tmp, '_', &domainp2, 1, 0)==0) {
+
+	logoutput_debug("%s: skip %.*s: no domain p1 found", __FUNCTION__, line->length, line->str);
+	return 0;
+
+    }
+
+    /* create module */
 
     module=malloc(sizeof(struct osns_module_s));
 
@@ -236,27 +294,29 @@ static unsigned char osns_read_startprofile_cb(struct dstr_s *line, void *ptr)
     module->action=NULL;
     MODULE_init(&module->module);
 
-    if (OSNS_module_load(octx, line, module)==0) {
+    if (OSNS_module_load(octx, &name, module)==0) {
 
-	logoutput_debug("%s: unable to load %.*s", __FUNCTION__, line->length, line->str);
+	logoutput_debug("%s: unable to load %.*s", __FUNCTION__, name.length, name.str);
 	free(module);
 	return 0;
 
     }
 
-    logoutput_debug("%s: loaded module %.*s", __FUNCTION__, line->length, line->str);
+    module->status|=OSNS_MODULE_STATUS_LOADED;
 
-    module->action=(struct osns_ctx_action_s *) MODULE_get_symbolptr(&module->module, "osns_ctx_action");
+    logoutput_debug("%s: loaded module %.*s .. now trying to get symbol %.*s", __FUNCTION__, name.length, name.str, tmp.length, tmp.str);
+
+    module->action=(struct osns_ctx_action_s *) OSNS_module_get_symbolptr(module, line);
 
     if (module->action==NULL) {
 
-	logoutput_debug("%s: unable to get symbol osns_ctx_action form %.*s", __FUNCTION__, line->length, line->str);
+	logoutput_debug("%s: unable to get symbo %.*s", __FUNCTION__, line->length, line->str);
 	free(module);
 	return 0;
 
     }
 
-    logoutput_debug("%s: found symbol osns_ctx_action in  module %.*s", __FUNCTION__, line->length, line->str);
+    logoutput_debug("%s: found symbol %.*s in module %.*s", __FUNCTION__, tmp.length, tmp.str, line->length, line->str);
 
     /* add to action list */
 

@@ -33,7 +33,7 @@ void MOUNTMONITOR_init(struct event_shared_signal_s *esignal, unsigned int mask_
 {
     struct event_shared_signal_s *global_esignal=EVENT_signal_get_default();
 
-    if (EVENT_signal_lock(global_esignal)) {
+    if (EVENT_signal_lock(global_esignal)==0) {
 
 	refcount++;
 
